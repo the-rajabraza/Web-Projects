@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wage Calculator</title>
+<style>
+    /* CSS styles for the form */
+    body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+    }
+    label {
+        display: block;
+        margin-bottom: 5px;
+    }
+    input[type="text"], input[type="number"], input[type="date"] {
+        margin-bottom: 10px;
+        width: 100%;
+        padding: 8px;
+    }
+    button {
+        padding: 8px 16px;
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        cursor: pointer;
+    }
+    button:hover {
+        background-color: #45a049;
+    }
+    /* CSS styles for the output */
+    #output {
+        margin-top: 20px;
+    }
+    .person-result {
+        background-color: #f7f7f7;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        padding: 15px;
+        margin-bottom: 10px;
+    }
+    .person-name {
+        font-weight: bold;
+        font-size: 18px;
+        margin-bottom: 5px;
+    }
+    .result-info {
+        margin-left: 20px;
+    }
+    .total-info {
+        margin-top: 20px;
+        font-size: 16px;
+    }
+</style>
+</head>
+<body>
+    <h1>Wage Calculator</h1>
+    <form id="wageForm">
+        <label for="peopleQuantity">Number of People:</label>
+        <input type="number" id="peopleQuantity" name="peopleQuantity" min="1" required>
+        
+        <div id="peopleNames"></div>
+
+        <label for="startDate">Start Date:</label>
+        <input type="date" id="startDate" name="startDate" required>
+
+        <label for="endDate">End Date:</label>
+        <input type="date" id="endDate" name="endDate" required>
+
+        <button type="button" onclick="calculateWage()">Calculate Wage</button>
+    </form>
+
+    <div id="output"></div>
+
+    <script>
+        function addPeopleInputs() {
+            const peopleQuantity = document.getElementById('peopleQuantity').value;
+            const peopleNamesDiv = document.getElementById('peopleNames');
+            peopleNamesDiv.innerHTML = ''; // Clear previous inputs
+            
+            for (let i = 1; i <= peopleQuantity; i++) {
+                const label = document.createElement('label');
+                label.textContent = `Name of Person ${i}:`;
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.name = `person${i}Name`;
+                input.required = true;
+                peopleNamesDiv.appendChild(label);
+                peopleNamesDiv.appendChild(input);
+            }
+        }
+
+        function calculateWage() {
+            // Get form data
+            const formData = new FormData(document.getElementById('wageForm'));
+            const startDate = new Date(formData.get('startDate'));
+            const endDate = new Date(formData.get('endDate'));
+            const peopleData = [];
+            
+            // Loop through people inputs
+            for (const pair of formData.entries()) {
+                if (pair[0].startsWith('person') && pair[0].endsWith('Name')) {
+                    const personNumber = pair[0].replace('person', '').replace('Name', '');
+                    const personName = pair[1];
+                    const personData = {
+                        name: personName,
+                        presentDays: 0,
+                        dailyWage: 0
+                    };
+                    // Get present days (including Sundays) and daily wage for each person
+                    const presentDays = parseInt(prompt(`Enter present days (including Sundays) for ${personName} between ${startDate.toLocaleDateString()} and ${endDate.toLocaleDateString()}:`), 10);
+                    const dailyWage = parseFloat(prompt(`Enter daily wage for ${personName}:`));
+                    personData.presentDays = presentDays;
+                    personData.dailyWage = dailyWage;
+                    peopleData.push(personData);
+                }
+            }
+
+            // Calculate total wage for each person
+            let output = '<h2>Wage Calculation Results</h2>';
+            peopleData.forEach(person => {
+                const wage = person.dailyWage * person.presentDays;
+                output += `<div class="person-result">`;
+                output += `<p class="person-name">${person.name}</p>`;
+                output += `<div class="result-info">`;
+                output += `<p>Present Days (including Sundays): ${person.presentDays}</p>`;
+                output += `<p>Wage: ${wage}</p>`;
+                output += `</div></div>`;
+            });
+
+            // Calculate total Sundays
+            let totalSundays = 0;
+            const currentDate = new Date(startDate);
+            while (currentDate <= endDate) {
+                if (currentDate.getDay() === 0) { // Sunday
+                    totalSundays++;
+                }
+                currentDate.setDate(currentDate.getDate() + 1);
+            }
+
+            output += `<p class="total-info">Total Sundays: ${totalSundays}</p>`;
+
+            document.getElementById('output').innerHTML = output;
+        }
+
+        document.getElementById('peopleQuantity').addEventListener('change', addPeopleInputs);
+    </script>
+</body>
+</html>
